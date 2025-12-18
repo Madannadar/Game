@@ -7,6 +7,21 @@ export type BallType =
   | "good"
   | "slower";
 
+export type ShotType = 
+  "defensive" 
+  | "balanced" 
+  | "aggressive";
+
+export interface BallDecision {
+  ballType: BallType;     // chosen by bowler
+  shotType: ShotType;     // chosen by batsman
+}
+
+export interface BallOutcome extends BallResult {
+  ballType: BallType;
+  shotType: ShotType;
+}
+
 export interface PlayerCard {
   id: string;
   name: string;
