@@ -1,46 +1,37 @@
-import { useState } from "react";
-import { MatchEngine } from "./game-engine/match";
-import { samplePlayers } from "./game-engine/cards";
-
-const engine = new MatchEngine(
-  { name: "You", players: Array(11).fill(samplePlayers[0]) },
-  { name: "Opponent", players: Array(11).fill(samplePlayers[1]) }
-);
+import { SignedIn, SignedOut, SignInButton, UserButton, useAuth } from "@clerk/clerk-react";
+import { useEffect } from "react";
 
 function App() {
-  const [log, setLog] = useState<string[]>([]);
-  const [score, setScore] = useState(0);
+  const { getToken, isSignedIn } = useAuth();
 
-  function playBall(ballType: any, shotType: any) {
-    const result = engine.nextBall({ ballType, shotType });
-    setLog((l) => [
-      ...l,
-      `${result.ballType} + ${result.shotType} → ${result.description}`,
-    ]);
-    setScore(engine.getScore());
-  }
+  useEffect(() => {
+    const syncUser = async () => {
+      const token = await getToken();
+      console.log("Sending token to backend");
+      await fetch("http://localhost:3000/auth/me", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    };
+
+    if (isSignedIn) {
+      syncUser();
+    }
+  }, [isSignedIn]);
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Score: {score}</h1>
+    <header>
+      <SignedOut>
+        <SignInButton />
+      </SignedOut>
 
-      <h3>Choose Ball</h3>
-      {["yorker","bouncer","good"].map((b) => (
-        <button key={b} onClick={() => playBall(b, "balanced")}>
-          {b}
-        </button>
-      ))}
-
-      <h3>Choose Shot</h3>
-      {["defensive","balanced","aggressive"].map((s) => (
-        <button key={s} onClick={() => playBall("good", s)}>
-          {s}
-        </button>
-      ))}
-
-      <pre>{log.join("\n")}</pre>
-    </div>
+      <SignedIn>
+        <UserButton />
+      </SignedIn>
+    </header>
   );
 }
- 
+
 export default App;
